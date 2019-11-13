@@ -1,0 +1,269 @@
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Assessment</title>
+
+
+	<link rel="stylesheet" type="text/css" href="main.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+
+</head>
+
+
+<body>
+
+
+
+	<div class="container text-center">
+		<h1>Self Assessment </h1>
+	</div>
+	<div class="container text-center">
+		<ul id="quiz" class="list-group">
+
+		</ul>
+	</div>
+
+	<div class="container text-center hide results">
+		<img src="Depression1.jpg" class="results col-md-4 col-sm-4 col-xs-4">
+		<img src="Depression2.jpg" class="results col-md-4 col-sm-4 col-xs-4">
+		<img src="Depression3.jpg" class="results col-md-4 col-sm-4 col-xs-4">
+	</div>
+
+	<div class="container text-center results hide">
+		<p id="results"></p>
+	</div>
+
+	<div class="container text-center bottom">
+		<button id="submit-btn" class="btn btn-primary btn-lg">Determine</button>
+
+		<button id="retake-btn" class="hide btn btn-primary btn-lg">Retake Assessment</button>
+		
+		
+		
+		
+	</div>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+	<script>
+
+var prompts = [
+{
+	prompt: 'Do you find it difficult getting up in the morning?',
+	weight: -1,
+	class: 'group0'
+},
+{
+	prompt: 'Have you found less pleasure in things you liked doing before? ',
+	weight: -1,
+	class: 'group1'
+},
+{
+	prompt: 'Do you leave the house often?',
+	weight: -1,
+	class: 'group2'
+},
+{
+	prompt: 'How often do you socialise with other people?',
+	weight: -1,
+	class: 'group3'
+},
+{
+	prompt: 'Do you feel depressed and down most days?',
+	weight: -1,
+	class: 'group4'
+},
+{
+	prompt: 'Do you find it difficult to talk to others?',
+	weight: -1,
+	class: 'group5'
+},
+{
+	prompt: 'Are you usually highly motivated and energetic',
+	weight: 1,
+	class: 'group6'
+},
+{
+	prompt: 'Do you find it easy to walk up to a group of people and join in conversation',
+	weight: 1,
+	class: 'group7'
+},
+{
+	prompt: 'Can you talk to your family about your problems?',
+	weight: 1,
+	class: 'group8'
+}
+
+]
+
+var prompt_values = [
+{
+	value: 'Strongly Disagree', 
+	class: 'btn-default btn-strongly-agree',
+	weight: 5
+},
+{
+	value: 'No',
+	class: 'btn-default btn-agree',
+	weight: 3,
+}, 
+{
+	value: 'Not sure', 
+	class: 'btn-default',
+	weight: 0
+},
+{
+	value: 'More than Half the time',
+	class: 'btn-default btn-disagree',
+	weight: -3
+},
+{ 
+	value: 'All the time',
+	class: 'btn-default btn-strongly-disagree',
+	weight: -5
+}
+]
+
+function createPromptItems() {
+
+	for (var i = 0; i < prompts.length; i++) {
+		var prompt_li = document.createElement('li');
+		var prompt_p = document.createElement('p');
+		var prompt_text = document.createTextNode(prompts[i].prompt);
+
+		prompt_li.setAttribute('class', 'list-group-item prompt');
+		prompt_p.appendChild(prompt_text);
+		prompt_li.appendChild(prompt_p);
+
+		document.getElementById('quiz').appendChild(prompt_li);
+	}
+}
+
+
+function createValueButtons() {
+	for (var li_index = 0; li_index < prompts.length; li_index++) {
+		var group = document.createElement('div');
+		group.className = 'btn-group btn-group-justified';
+
+		for (var i = 0; i < prompt_values.length; i++) {
+			var btn_group = document.createElement('div');
+			btn_group.className = 'btn-group';
+
+			var button = document.createElement('button');
+			var button_text = document.createTextNode(prompt_values[i].value);
+			button.className = 'group' + li_index + ' value-btn btn ' + prompt_values[i].class;
+			button.appendChild(button_text);
+
+			btn_group.appendChild(button);
+			group.appendChild(btn_group);
+
+			document.getElementsByClassName('prompt')[li_index].appendChild(group);
+		}
+	}
+}
+
+createPromptItems();
+createValueButtons();
+
+
+var total = 0;
+
+
+function findPromptWeight(prompts, group) {
+	var weight = 0;
+
+	for (var i = 0; i < prompts.length; i++) {
+		if (prompts[i].class === group) {
+			weight = prompts[i].weight;
+		}
+	}
+
+	return weight;
+}
+
+
+function findValueWeight(values, value) {
+	var weight = 0;
+
+	for (var i = 0; i < values.length; i++) {
+		if (values[i].value === value) {
+			weight = values[i].weight;
+		}
+	}
+
+	return weight;
+}
+
+
+$('.value-btn').mousedown(function () {
+	var classList = $(this).attr('class');
+
+	var classArr = classList.split(" ");
+
+	var this_group = classArr[0];
+
+
+	if($(this).hasClass('active')) {
+		$(this).removeClass('active');
+		total -= (findPromptWeight(prompts, this_group) * findValueWeight(prompt_values, $(this).text()));
+	} else {
+
+		total -= (findPromptWeight(prompts, this_group) * findValueWeight(prompt_values, $('.'+this_group+'.active').text()));
+	
+		$('.'+this_group).removeClass('active');
+
+
+		$(this).addClass('active');
+		total += (findPromptWeight(prompts, this_group) * findValueWeight(prompt_values, $(this).text()));
+	}
+
+	console.log(total);
+})
+
+
+
+$('#submit-btn').click(function () {
+
+	$('.results').removeClass('hide');
+	$('.results').addClass('show');
+	
+	if(total < 0) {
+	
+		document.getElementById('results').innerHTML = '<b>You are unlikely Depressed</b><br><br>\
+		You are showing no symptoms of depression or major depressive disorder. Though if you are concerned seek professional advice to discuss any futrure problems.\n\
+<br><br>\
+Please read about symptoms in the information webpage of this website too have a greater context of this serious mental health disorder:\n\
+';
+	} else if(total > 0) {
+		document.getElementById('results').innerHTML = '<b>You are showing symptoms of Depression</b><br><br>\
+		Based on the anwsers you selected its very likely you could be showing some symptoms of depression or MDD. However only a professional health expert can make this call. You should make an appointment with your GP as soon as you can\
+<br><br>\
+Showing symptoms means you can improve your mental health quickly and can be improved through care, medication and talking to people:\
+<br><br>\
+';
+	} else {
+		document.getElementById('results').innerHTML = '<b></b>You are showing little symptoms of depression<br><br>\
+		Based on the answers you have selected  you might be suffering from depression and you should seek medical advice by contact GP .\
+<br><br>\
+Please make an appointment with your GP or phone NHS 111 for further information.\
+<br><br>\
+'
+	}
+
+
+	$('#quiz').addClass('hide');
+	$('#submit-btn').addClass('hide');
+	$('#retake-btn').removeClass('hide');
+})
+
+$('#retake-btn').click(function () {
+	$('#quiz').removeClass('hide');
+	$('#submit-btn').removeClass('hide');
+	$('#retake-btn').addClass('hide');
+
+	$('.results').addClass('hide');
+	$('.results').removeClass('show');
+})
+	</script>
+</body>
+</html>
